@@ -7,18 +7,13 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
+	"github.com/bharabhi01/authservice/pkg/config"
 )
 
 var DB *sql.DB
 
-func InitDB() {
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-
-	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
+func InitDB(cfg *config.Config) error {
+	connStr := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=%s", cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSSLMode)
 
 	var err error
 	DB, err = sql.Open("postgres", connStr)

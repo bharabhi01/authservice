@@ -8,6 +8,19 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
+// Global configuration for JWT
+var (
+	jwtSecret      string
+	expirationHours int
+)
+
+// Init initializes the JWT package with configuration
+// This should be called during application startup
+func Init(secret string, expHours int) {
+	jwtSecret = secret
+	expirationHours = expHours
+}
+
 // Claims represents the JWT claims structure
 // It extends the standard JWT claims with our custom fields
 type Claims struct {
@@ -19,13 +32,12 @@ type Claims struct {
 
 // GenerateToken generates a new JWT token for a user
 func GenerateToken(userId, username, role string) (string, error) {
-	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return "", errors.New("JWT_SECRET is not set")
 	}
 
 	// Set expiration time to 24 hours
-	expirationTime := time.Now().Add(24 * time.Hour)
+	expirationTime := time.Now().Add(time.Duration(expirationHours) * time.Hour)
 
 	// Create the JWT claims
 	claims := &Claims {
@@ -52,7 +64,6 @@ func GenerateToken(userId, username, role string) (string, error) {
 }
 
 func ValidateToken(tokenString string) (*Claims, error) {
-	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		return nil, errors.New("JWT_SECRET is not set")
 	}

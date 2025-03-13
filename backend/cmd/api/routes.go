@@ -5,17 +5,22 @@ import (
 	"github.com/bharabhi01/authservice/internal/auth"
 	"github.com/bharabhi01/authservice/internal/middleware"
 	"github.com/bharabhi01/authservice/internal/user"
+	"github.com/bharabhi01/authservice/pkg/config"     
+	"github.com/bharabhi01/authservice/pkg/jwt" 
 )
 
-func setupRoutes(router *gin.Engine) {
+func setupRoutes(router *gin.Engine, cfg *config.Config) {
+	jwt.Init(cfg.JWTSecret, cfg.JWTExpirationHours)
+	
 	userRepo := user.NewRepository()
 	authHandler := auth.NewHandler(userRepo)
 
 	public := router.Group("/api/v1")
 	{
-		public.http.GET("/health", func(c *gin.Context) {
+		public.GET("/health", func(c *gin.Context) {
 			c.JSON(200, gin.H{
 				"status": "ok",
+				"env": cfg.Env,
 			})
 		})
 

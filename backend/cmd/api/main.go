@@ -10,32 +10,25 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"github.com/bharabhi01/authservice/pkg/database"
+	"github.com/bharabhi01/authservice/pkg/config" 
 )
 
 func main() {
 	// Load environment variables
-	if err := godotenv.Load(); err != nil {
+	if err := config.Load(); err != nil {
 		log.Println("Warning: .env file not found, using system env")
+	}
+
+	if cfg.Env == "production" {
+		gin.SetMode(gin.ReleaseMode)
 	}
 
 	// Initialize the database connection 
 	if err := database.InitDB(); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
-	defer database.CloseDB()
-
-	// Set the port 
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	env := os.Getenv("ENV")
-	if env == "production" {
-		gin.SetMode(gin.ReleaseMode)
-	}
+	defer database.CloseDB()	
 
 	router := gin.Default()
 
@@ -53,17 +46,19 @@ func main() {
 		c.Next()
 	})
 
-	setupRoutes(router)
+	setupRoutes(router, cfg)
 
 	// HTTP server with Gin router
 	server := &http.Server {
-		Addr : ":" + port,
+		Addr : ":" + cfg.Port,
 		Handler : router,
+		ReadTimeout : cfg.ReadTimeout,
+		WriteTimeout : cfg.WriteTimeout,
 	}
 
 	// Start the server in a goroutine so that it doesn't block the main function
 	go func() {
-		log.Printf("Server starting on port %s", port)
+		log.Printf("Server starting on port %s in %s mode\n", cfg.Port, cfg.Env)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed to start: %v", err)
 		}
@@ -75,7 +70,7 @@ func main() {
 	<- quit
 	log.Println("Shutting down server...")
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 	defer cancel()
 
 	if err := server.Shutdown(ctx); err != nil {
