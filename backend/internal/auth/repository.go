@@ -33,7 +33,7 @@ func (r *Repository) GetRoles() ([]Role, error) {
 	var roles []Role
 
 	for rows.Next() {
-		var role role
+		var role Role
 
 		if err := rows.Scan(
 			&role.ID,

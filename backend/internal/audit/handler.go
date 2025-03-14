@@ -40,7 +40,7 @@ func (h *Handler) GetLogs(c *gin.Context) {
 	logs, err := h.auditLogger.GetLogs(c.Request.Context(), userID, action, resourceType, limit, offset)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Failed to get audit logs" + err.Error()
+			"error": "Failed to get audit logs: " + err.Error(),
 		})
 		return
 	}

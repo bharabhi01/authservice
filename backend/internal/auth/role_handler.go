@@ -2,7 +2,6 @@ package auth
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )

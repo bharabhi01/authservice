@@ -3,7 +3,6 @@ package jwt
 import (
 	"errors"
 	"time"
-	"os"
 
 	"github.com/dgrijalva/jwt-go"
 )
@@ -41,13 +40,13 @@ func GenerateToken(userId, username, role string) (string, error) {
 
 	// Create the JWT claims
 	claims := &Claims {
-		UserID: userId,
+		UserId: userId,
 		Username: username,
 		Role: role,
 		StandardClaims: jwt.StandardClaims {
 			ExpiresAt: expirationTime.Unix(),
 			IssuedAt: time.Now().Unix(),
-			Issuer: "authservice"
+			Issuer: "authservice",
 		},
 	}
 

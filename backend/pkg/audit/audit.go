@@ -3,6 +3,7 @@ package audit
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -119,7 +120,7 @@ func (l *Logger) GetLogs(ctx context.Context, userID, action, resourceType strin
 	query += ` ORDER BY created_at DESC LIMIT $` + string(argCount) + ` OFFSET $` + string(argCount + 1)
 	args = append(args, limit, offset)
 
-	rows, err := l.db.QueryRowContext(ctx, query, args...)
+	rows, err := l.db.QueryContext(ctx, query, args...)
 	if err != nil {
 		return nil, err
 	}

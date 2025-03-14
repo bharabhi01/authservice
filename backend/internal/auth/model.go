@@ -1,5 +1,9 @@
 package auth
 
+import (
+	"time"
+)
+
 type Role struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
@@ -32,7 +36,7 @@ type RoleResponse struct {
 	ID string `json:"id"`
 	Name string `json:"name"`
 	Description string `json:"description"`
-	Permissions []Permission `json:"permissions"`
+	Permissions []string `json:"permissions"`
 }
 
 type PermissionResponse struct {

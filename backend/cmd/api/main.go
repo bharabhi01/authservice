@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/bharabhi01/authservice/pkg/database"
@@ -16,7 +15,8 @@ import (
 
 func main() {
 	// Load environment variables
-	if err := config.Load(); err != nil {
+	cfg, err := config.Load()
+	if err != nil {
 		log.Println("Warning: .env file not found, using system env")
 	}
 
@@ -25,7 +25,7 @@ func main() {
 	}
 
 	// Initialize the database connection 
-	if err := database.InitDB(); err != nil {
+	if err := database.InitDB(cfg); err != nil {
 		log.Fatalf("Failed to initialize database: %v", err)
 	}
 	defer database.CloseDB()	

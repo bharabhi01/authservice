@@ -44,7 +44,8 @@ func (r *Repository) Create(user *UserRegistration) (*User, error) {
 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 		RETURNING id, username, email, password_hash, first_name, last_name, role, active, created_at, updated_at
 	`
-	err := r.db.QueryRow (
+
+	err = r.db.QueryRow(
 		query,
 		newUser.Username,
 		newUser.Email,

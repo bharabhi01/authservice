@@ -18,7 +18,7 @@ func setupRoutes(router *gin.Engine, cfg *config.Config) {
 	authRepo := auth.NewRepository()
 	auditLogger := audit.NewLogger()
 
-	auditHandler := auditHandler.NewHandler(auditLogger)
+	auditHandlerInstance := auditHandler.NewHandler(auditLogger)
 	authHandler := auth.NewHandler(userRepo, auditLogger)
 	roleHandler := auth.NewRoleHandler(authRepo)
 
@@ -45,7 +45,7 @@ func setupRoutes(router *gin.Engine, cfg *config.Config) {
 	{
 		users := protected.Group("/users")
 		{
-			users.GET("/userinfo", authHandler.GetUserInfo)
+			users.GET("/userinfo", authHandler.CurrentUserInfo)
 
 			users.GET("/:id/roles", roleHandler.GetUserRoles)
 			users.POST("/:id/roles", roleHandler.AssignRoleToUser)
@@ -66,10 +66,11 @@ func setupRoutes(router *gin.Engine, cfg *config.Config) {
 			permissions.GET("", roleHandler.GetPermissions)
 		}
 
-		// admin := protected.Group("/admin")
-		// admin.Use(middleware.RoleMiddleware("admin"))
-		// {
-
-		// }
+		// Add audit logs endpoint
+		logs := protected.Group("/audit")
+		logs.Use(middleware.RoleMiddleware("admin"))
+		{
+			logs.GET("/logs", auditHandlerInstance.GetLogs)
+		}
 	}
 }

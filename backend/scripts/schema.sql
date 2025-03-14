@@ -1,5 +1,5 @@
 -- Users table
-CREATE TABLE IF NOT EXISTS users {
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -10,45 +10,53 @@ CREATE TABLE IF NOT EXISTS users {
     active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
-}
+);
 
 -- Roles table
-CREATE TABLE IF NOT EXISTS roles {
+CREATE TABLE IF NOT EXISTS roles (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) UNIQUE NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
-}
+);
 
 -- Permissions table
-CREATE TABLE IF NOT EXISTS permissions {
+CREATE TABLE IF NOT EXISTS permissions (
     id SERIAL PRIMARY KEY,
-    name VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(100) UNIQUE NOT NULL,
     description TEXT,
     created_at TIMESTAMP NOT NULL,
     updated_at TIMESTAMP NOT NULL
-}
+);
 
 -- Role permissions table
-CREATE TABLE IF NOT EXISTS role_permissions {
+CREATE TABLE IF NOT EXISTS role_permissions (
+    role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
+    permission_id INTEGER REFERENCES permissions(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL,
+    PRIMARY KEY (role_id, permission_id)
+);
+
+-- User roles table
+CREATE TABLE IF NOT EXISTS user_roles (
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     role_id INTEGER REFERENCES roles(id) ON DELETE CASCADE,
     created_at TIMESTAMP NOT NULL,
     PRIMARY KEY (user_id, role_id)
-}
+);
 
 -- Refresh tokens table
-CREATE TABLE IF NOT EXISTS refresh_tokens {
+CREATE TABLE IF NOT EXISTS refresh_tokens (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
     token VARCHAR(255) UNIQUE NOT NULL,
     expires_at TIMESTAMP NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-}
+    created_at TIMESTAMP NOT NULL
+);
 
 -- Audit logs table
-CREATE TABLE IF NOT EXISTS audit_logs {
+CREATE TABLE IF NOT EXISTS audit_logs (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
     action VARCHAR(100) NOT NULL,
@@ -58,13 +66,13 @@ CREATE TABLE IF NOT EXISTS audit_logs {
     user_agent TEXT,
     details JSONB,
     created_at TIMESTAMP NOT NULL
-}
+);
 
 -- Insert default roles
 INSERT INTO roles (name, description, created_at, updated_at)
 VALUES
-    ('admin', 'Adminstrator with all permissions', NOW(), NOW()),
-    ('user', 'Regular user with limited permissions', NOW(), NOW());
+    ('admin', 'Administrator with all permissions', NOW(), NOW()),
+    ('user', 'Regular user with limited permissions', NOW(), NOW())
 ON CONFLICT (name) DO NOTHING;
 
 -- Insert default permissions
