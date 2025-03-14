@@ -1,3 +1,5 @@
+"use client";
+
 import { createContext, useContext, useState, useEffect } from "react";
 import { authAPI } from "../services/api";
 
@@ -9,7 +11,7 @@ export function AuthProvider({ children }) {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (typeof window !== 'undefined')
+        if (typeof window === 'undefined')
             return;
 
         const token = localStorage.getItem('token');
