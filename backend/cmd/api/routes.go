@@ -7,13 +7,22 @@ import (
 	"github.com/bharabhi01/authservice/internal/user"
 	"github.com/bharabhi01/authservice/pkg/config"     
 	"github.com/bharabhi01/authservice/pkg/jwt" 
+	"github.com/bharabhi01/authservice/pkg/audit"
+	auditHandler "github.com/bharabhi01/authservice/internal/audit"
 )
 
 func setupRoutes(router *gin.Engine, cfg *config.Config) {
 	jwt.Init(cfg.JWTSecret, cfg.JWTExpirationHours)
 	
 	userRepo := user.NewRepository()
-	authHandler := auth.NewHandler(userRepo)
+	authRepo := auth.NewRepository()
+	auditLogger := audit.NewLogger()
+
+	auditHandler := auditHandler.NewHandler(auditLogger)
+	authHandler := auth.NewHandler(userRepo, auditLogger)
+	roleHandler := auth.NewRoleHandler(authRepo)
+
+	router.Use(middleware.AuditMiddleware(auditLogger))
 
 	public := router.Group("/api/v1")
 	{
@@ -37,6 +46,24 @@ func setupRoutes(router *gin.Engine, cfg *config.Config) {
 		users := protected.Group("/users")
 		{
 			users.GET("/userinfo", authHandler.GetUserInfo)
+
+			users.GET("/:id/roles", roleHandler.GetUserRoles)
+			users.POST("/:id/roles", roleHandler.AssignRoleToUser)
+			users.DELETE("/:id/roles/:roleId", roleHandler.RemoveRoleFromUser)
+
+			users.GET("/:id/permissions/check", roleHandler.CheckPermission)
+		}
+
+		roles := protected.Group("/roles")
+		roles.Use(middleware.RoleMiddleware("admin")) 
+		{
+			roles.GET("", roleHandler.GetRoles)
+		}
+
+		permissions := protected.Group("/permissions")
+		permissions.Use(middleware.RoleMiddleware("admin")) 
+		{
+			permissions.GET("", roleHandler.GetPermissions)
 		}
 
 		// admin := protected.Group("/admin")

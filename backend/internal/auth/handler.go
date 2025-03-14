@@ -7,15 +7,18 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/bharabhi01/authservice/internal/user"
 	"github.com/bharabhi01/authservice/pkg/jwt"
+	"github.com/bharabhi01/authservice/pkg/audit"
 )
 
 type Handler struct {
 	userRepo *user.Repository
+	auditLogger *audit.Logger
 }
 
-func NewHandler(userRepo *user.Repository) *Handler {
+func NewHandler(userRepo *user.Repository, auditLogger *audit.Logger) *Handler {
 	return &Handler{
 		userRepo: userRepo,
+		auditLogger: auditLogger,
 	}
 }
 
@@ -50,6 +53,14 @@ func (h *Handler) Register(c *gin.Context) {
 			"error": "Failed to generate token: " + err.Error(),
 		})
 		return
+	}
+
+	if h.auditLogger != nil {
+		details := map[string]interface{}{
+			"username": newUser.Username,
+			"email": newUser.Email,
+		}
+		h.auditLogger.LogFromGin(c, "REGISTER", "user", newUser.ID, details)
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
@@ -96,6 +107,13 @@ func (h *Handler) Login(c *gin.Context) {
 			"error": "Failed to generate token: " + err.Error(),
 		})
 		return
+	}
+
+	if h.auditLogger != nil {
+		details := map[string]interface{}{
+			"username": user.Username,
+		}
+		h.auditLogger.LogFromGin(c, "LOGIN", "user", user.ID, details)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
